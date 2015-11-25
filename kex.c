@@ -510,6 +510,8 @@ kex_free(struct kex *kex)
 	free(kex->client_version_string);
 	free(kex->server_version_string);
 	free(kex->failed_choice);
+	free(kex->hostkey_alg);
+	free(kex->name);
 	free(kex);
 }
 
@@ -606,17 +608,16 @@ choose_kex(struct kex *k, char *client, char *server)
 static int
 choose_hostkeyalg(struct kex *k, char *client, char *server)
 {
-	char *hostkeyalg = match_list(client, server, NULL);
+	k->hostkey_alg = match_list(client, server, NULL);
 
 	debug("kex: host key algorithm: %s",
-	    hostkeyalg ? hostkeyalg : "(no match)");
-	if (hostkeyalg == NULL)
+	    k->hostkey_alg ? k->hostkey_alg : "(no match)");
+	if (k->hostkey_alg == NULL)
 		return SSH_ERR_NO_HOSTKEY_ALG_MATCH;
-	k->hostkey_type = sshkey_type_from_name(hostkeyalg);
+	k->hostkey_type = sshkey_type_from_name(k->hostkey_alg);
 	if (k->hostkey_type == KEY_UNSPEC)
 		return SSH_ERR_INTERNAL_ERROR;
-	k->hostkey_nid = sshkey_ecdsa_nid_from_name(hostkeyalg);
-	free(hostkeyalg);
+	k->hostkey_nid = sshkey_ecdsa_nid_from_name(k->hostkey_alg);
 	return 0;
 }
 

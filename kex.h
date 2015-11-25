@@ -115,6 +115,7 @@ struct kex {
 	u_int	dh_need;
 	int	server;
 	char	*name;
+	char	*hostkey_alg;
 	int	hostkey_type;
 	int	hostkey_nid;
 	u_int	kex_type;
