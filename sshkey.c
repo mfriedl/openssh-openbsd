@@ -79,28 +79,31 @@ struct keytype {
 	int type;
 	int nid;
 	int cert;
+	int sigonly;
 };
 static const struct keytype keytypes[] = {
-	{ "ssh-ed25519", "ED25519", KEY_ED25519, 0, 0 },
+	{ "ssh-ed25519", "ED25519", KEY_ED25519, 0, 0, 0 },
 	{ "ssh-ed25519-cert-v01@openssh.com", "ED25519-CERT",
-	    KEY_ED25519_CERT, 0, 1 },
+	    KEY_ED25519_CERT, 0, 1, 0 },
 #ifdef WITH_OPENSSL
-	{ NULL, "RSA1", KEY_RSA1, 0, 0 },
-	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0 },
-	{ "ssh-dss", "DSA", KEY_DSA, 0, 0 },
-	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0 },
-	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0 },
-	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0 },
-	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1 },
-	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1 },
+	{ NULL, "RSA1", KEY_RSA1, 0, 0, 0 },
+	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0, 0 },
+	{ "rsa-sha2-256", "RSA", KEY_RSA, 0, 0, 1 },
+	{ "rsa-sha2-512", "RSA", KEY_RSA, 0, 0, 1 },
+	{ "ssh-dss", "DSA", KEY_DSA, 0, 0, 0 },
+	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0, 0 },
+	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0, 0 },
+	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0, 0 },
+	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1, 0 },
+	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1, 0 },
 	{ "ecdsa-sha2-nistp256-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1 },
+	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1, 0 },
 	{ "ecdsa-sha2-nistp384-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_secp384r1, 1 },
+	    KEY_ECDSA_CERT, NID_secp384r1, 1, 0 },
 	{ "ecdsa-sha2-nistp521-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_secp521r1, 1 },
+	    KEY_ECDSA_CERT, NID_secp521r1, 1, 0 },
 #endif /* WITH_OPENSSL */
-	{ NULL, NULL, -1, -1, 0 }
+	{ NULL, NULL, -1, -1, 0, 0 }
 };
 
 const char *
@@ -188,7 +191,7 @@ key_alg_list(int certs_only, int plain_only)
 	const struct keytype *kt;
 
 	for (kt = keytypes; kt->type != -1; kt++) {
-		if (kt->name == NULL)
+		if (kt->name == NULL || kt->sigonly)
 			continue;
 		if ((certs_only && !kt->cert) || (plain_only && kt->cert))
 			continue;

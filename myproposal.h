@@ -50,6 +50,8 @@
 	"ecdsa-sha2-nistp384," \
 	"ecdsa-sha2-nistp521," \
 	"ssh-ed25519," \
+	"rsa-sha2-256," \
+	"rsa-sha2-512," \
 	"ssh-rsa"
 
 #define	KEX_SERVER_ENCRYPT \
