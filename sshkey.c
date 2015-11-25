@@ -2154,7 +2154,7 @@ sshkey_sign(const struct sshkey *key,
 		return ssh_ecdsa_sign(key, sigp, lenp, data, datalen, compat);
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_sign(key, sigp, lenp, data, datalen, compat);
+		return ssh_rsa_sign(key, SSH_DIGEST_SHA1, sigp, lenp, data, datalen);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
@@ -2184,7 +2184,7 @@ sshkey_verify(const struct sshkey *key,
 		return ssh_ecdsa_verify(key, sig, siglen, data, dlen, compat);
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_verify(key, sig, siglen, data, dlen, compat);
+		return ssh_rsa_verify(key, sig, siglen, data, dlen);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
