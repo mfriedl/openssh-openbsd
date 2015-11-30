@@ -272,7 +272,8 @@ main(int argc, char **argv)
 		    sshkey_type(key), fp ? fp : "");
 	}
 
-	if ((r = sshkey_sign(keys[i], &signature, &slen, data, dlen, 0)) != 0)
+	if ((r = sshkey_sign(keys[i], &signature, &slen, data, dlen, NULL, 0))
+	    != 0)
 		fatal("sshkey_sign failed: %s", ssh_err(r));
 	free(data);
 

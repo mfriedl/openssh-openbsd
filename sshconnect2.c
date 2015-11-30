@@ -979,12 +979,12 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	 * the private key is stored in external hardware
 	 */
 	if (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))
-		return (sshkey_sign(id->key, sigp, lenp, data, datalen,
+		return (sshkey_sign(id->key, sigp, lenp, data, datalen, NULL,
 		    compat));
 	/* load the private key from the file */
 	if ((prv = load_identity_file(id)) == NULL)
 		return (-1); /* XXX return decent error code */
-	ret = sshkey_sign(prv, sigp, lenp, data, datalen, compat);
+	ret = sshkey_sign(prv, sigp, lenp, data, datalen, NULL, compat);
 	sshkey_free(prv);
 	return (ret);
 }
@@ -1735,7 +1735,7 @@ userauth_hostbased(Authctxt *authctxt)
 		r = ssh_keysign(private, &sig, &siglen,
 		    sshbuf_ptr(b), sshbuf_len(b));
 	else if ((r = sshkey_sign(private, &sig, &siglen,
-	    sshbuf_ptr(b), sshbuf_len(b), datafellows)) != 0)
+	    sshbuf_ptr(b), sshbuf_len(b), NULL, datafellows)) != 0)
 		debug("%s: sshkey_sign: %s", __func__, ssh_err(r));
 	if (r != 0) {
 		error("sign using hostkey %s %s failed",

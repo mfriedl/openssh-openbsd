@@ -208,7 +208,7 @@ mm_choose_dh(int min, int nbits, int max)
 
 int
 mm_key_sign(Key *key, u_char **sigp, u_int *lenp,
-    const u_char *data, u_int datalen)
+    const u_char *data, u_int datalen, const char *hostkey_alg)
 {
 	struct kex *kex = *pmonitor->m_pkex;
 	Buffer m;
@@ -218,6 +218,7 @@ mm_key_sign(Key *key, u_char **sigp, u_int *lenp,
 	buffer_init(&m);
 	buffer_put_int(&m, kex->host_key_index(key, 0, active_state));
 	buffer_put_string(&m, data, datalen);
+	buffer_put_cstring(&m, hostkey_alg);
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SIGN, &m);
 

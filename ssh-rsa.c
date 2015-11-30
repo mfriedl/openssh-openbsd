@@ -76,13 +76,13 @@ rsa_hash_alg_nid(int type)
 
 /* RSASSA-PKCS1-v1_5 (PKCS #1 v2.0 signature) with SHA1 */
 int
-ssh_rsa_sign(const struct sshkey *key, int hash_alg,
-    u_char **sigp, size_t *lenp, const u_char *data, size_t datalen)
+ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen, const char *alg_ident)
 {
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sig = NULL;
 	size_t slen;
 	u_int dlen, len;
-	int nid, ret = SSH_ERR_INTERNAL_ERROR;
+	int nid, hash_alg, ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
 
 	if (lenp != NULL)
@@ -90,8 +90,8 @@ ssh_rsa_sign(const struct sshkey *key, int hash_alg,
 	if (sigp != NULL)
 		*sigp = NULL;
 
-	if (key == NULL || key->rsa == NULL ||
-	    rsa_hash_alg_ident(hash_alg) == NULL ||
+	hash_alg = rsa_hash_alg_from_ident(alg_ident);
+	if (key == NULL || key->rsa == NULL || hash_alg == -1 ||
 	    sshkey_type_plain(key->type) != KEY_RSA ||
 	    BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;

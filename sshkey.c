@@ -2139,7 +2139,7 @@ sshkey_froms(struct sshbuf *buf, struct sshkey **keyp)
 int
 sshkey_sign(const struct sshkey *key,
     u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *data, size_t datalen, const char *alg, u_int compat)
 {
 	if (sigp != NULL)
 		*sigp = NULL;
@@ -2157,7 +2157,7 @@ sshkey_sign(const struct sshkey *key,
 		return ssh_ecdsa_sign(key, sigp, lenp, data, datalen, compat);
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_sign(key, SSH_DIGEST_SHA1, sigp, lenp, data, datalen);
+		return ssh_rsa_sign(key, sigp, lenp, data, datalen, alg);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
@@ -2417,7 +2417,7 @@ sshkey_certify(struct sshkey *k, struct sshkey *ca)
 
 	/* Sign the whole mess */
 	if ((ret = sshkey_sign(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
-	    sshbuf_len(cert), 0)) != 0)
+	    sshbuf_len(cert), NULL, 0)) != 0)
 		goto out;
 
 	/* Append signature and we are done */

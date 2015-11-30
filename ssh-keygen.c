@@ -514,7 +514,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 	sshbuf_free(b);
 
 	/* try the key */
-	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), 0) != 0 ||
+	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), NULL, 0) != 0 ||
 	    sshkey_verify(key, sig, slen, data, sizeof(data), 0) != 0) {
 		sshkey_free(key);
 		free(sig);

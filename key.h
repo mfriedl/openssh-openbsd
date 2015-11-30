@@ -84,7 +84,8 @@ int	 key_ec_validate_private(const EC_KEY *);
 Key	*key_from_blob(const u_char *, u_int);
 int	 key_to_blob(const Key *, u_char **, u_int *);
 
-int	 key_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
+int	 key_sign(const Key *, u_char **, u_int *, const u_char *, u_int,
+    const char *);
 int	 key_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
 
 void     key_private_serialize(const Key *, struct sshbuf *);

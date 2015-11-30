@@ -2343,16 +2343,19 @@ sshd_hostkey_sign(struct kex *kex, Key *privkey, Key *pubkey,
 	u_int xxx_slen, xxx_dlen = dlen;
 
 	if (privkey) {
-		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen) < 0))
+		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen,
+		    kex->hostkey_alg) < 0))
 			fatal("%s: key_sign failed", __func__);
 		if (slen)
 			*slen = xxx_slen;
 	} else if (use_privsep) {
-		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen) < 0)
+		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen,
+		    kex->hostkey_alg) < 0)
 			fatal("%s: pubkey_sign failed", __func__);
 		if (slen)
 			*slen = xxx_slen;
 	} else {
+		/* XXX pass kex->hostkey_alg */
 		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slen,
 		    data, dlen, datafellows)) != 0)
 			fatal("%s: ssh_agent_sign failed: %s",

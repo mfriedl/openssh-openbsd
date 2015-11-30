@@ -47,7 +47,7 @@ int	_ssh_host_key_sign(struct kex *, struct sshkey *, struct sshkey *,
  */
 int	use_privsep = 0;
 int	mm_sshkey_sign(struct sshkey *, u_char **, u_int *,
-    u_char *, u_int, u_int);
+    u_char *, u_int, char *, u_int);
 DH	*mm_choose_dh(int, int, int);
 
 /* Define these two variables here so that they are part of the library */
@@ -56,7 +56,7 @@ u_int session_id2_len = 0;
 
 int
 mm_sshkey_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
-    u_char *data, u_int datalen, u_int compat)
+    u_char *data, u_int datalen, char *alg, u_int compat)
 {
 	return (-1);
 }
@@ -526,5 +526,6 @@ _ssh_host_key_sign(struct kex *kex,
     u_char **signature, size_t *slen,
     const u_char *data, size_t dlen, u_int compat)
 {
-	return sshkey_sign(privkey, signature, slen, data, dlen, compat);
+	return sshkey_sign(privkey, signature, slen, data, dlen,
+	    kex->hostkey_alg, compat);
 }
