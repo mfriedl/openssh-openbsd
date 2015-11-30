@@ -2335,7 +2335,8 @@ do_ssh1_kex(void)
 #endif
 
 int
-sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
+sshd_hostkey_sign(struct kex *kex, Key *privkey, Key *pubkey,
+    u_char **signature, size_t *slen,
     const u_char *data, size_t dlen, u_int flag)
 {
 	int r;

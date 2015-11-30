@@ -215,7 +215,7 @@ input_kex_dh_gex_init(int type, u_int32_t seq, void *ctxt)
 	}
 
 	/* sign H */
-	if ((r = kex->sign(server_host_private, server_host_public,
+	if ((r = kex->sign(kex, server_host_private, server_host_public,
 	    &signature, &slen, hash, hashlen, ssh->compat)) < 0)
 		goto out;
 

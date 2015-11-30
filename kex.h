@@ -133,7 +133,7 @@ struct kex {
 	struct sshkey *(*load_host_public_key)(int, int, struct ssh *);
 	struct sshkey *(*load_host_private_key)(int, int, struct ssh *);
 	int	(*host_key_index)(struct sshkey *, int, struct ssh *);
-	int	(*sign)(struct sshkey *, struct sshkey *,
+	int	(*sign)(struct kex *, struct sshkey *, struct sshkey *,
 	    u_char **, size_t *, const u_char *, size_t, u_int);
 	int	(*kex[KEX_MAX])(struct ssh *);
 	/* kex specific state */

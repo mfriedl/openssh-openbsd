@@ -39,6 +39,7 @@
 
 struct ssh;
 struct sshkey;
+struct kex;
 
 typedef struct Authctxt Authctxt;
 typedef struct Authmethod Authmethod;
@@ -182,7 +183,7 @@ Key	*get_hostkey_public_by_type(int, int, struct ssh *);
 Key	*get_hostkey_private_by_type(int, int, struct ssh *);
 int	 get_hostkey_index(Key *, int, struct ssh *);
 int	 ssh1_session_key(BIGNUM *);
-int	 sshd_hostkey_sign(Key *, Key *, u_char **, size_t *,
+int	 sshd_hostkey_sign(struct kex *, Key *, Key *, u_char **, size_t *,
 	     const u_char *, size_t, u_int);
 
 /* debug messages during authentication */
