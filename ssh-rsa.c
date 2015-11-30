@@ -90,7 +90,8 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	if (sigp != NULL)
 		*sigp = NULL;
 
-	hash_alg = rsa_hash_alg_from_ident(alg_ident);
+	hash_alg = (alg_ident == NULL) ? SSH_DIGEST_SHA1 :
+	    rsa_hash_alg_from_ident(alg_ident);
 	if (key == NULL || key->rsa == NULL || hash_alg == -1 ||
 	    sshkey_type_plain(key->type) != KEY_RSA ||
 	    BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
