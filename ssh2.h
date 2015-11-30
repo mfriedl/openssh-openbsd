@@ -80,6 +80,7 @@
 #define SSH2_MSG_DEBUG					4
 #define SSH2_MSG_SERVICE_REQUEST			5
 #define SSH2_MSG_SERVICE_ACCEPT				6
+#define SSH2_MSG_EXT_INFO				7
 
 /* transport layer: alg negotiation */
 

@@ -120,6 +120,8 @@ struct kex {
 	int	hostkey_nid;
 	u_int	kex_type;
 	int	roaming;
+	int	rsa_sha2;
+	int	ext_info_c;
 	struct sshbuf *my;
 	struct sshbuf *peer;
 	sig_atomic_t done;
@@ -161,6 +163,7 @@ void	 kex_prop_free(char **);
 
 int	 kex_send_kexinit(struct ssh *);
 int	 kex_input_kexinit(int, u_int32_t, void *);
+int	 kex_input_ext_info(int, u_int32_t, void *);
 int	 kex_derive_keys(struct ssh *, u_char *, u_int, const struct sshbuf *);
 int	 kex_derive_keys_bn(struct ssh *, u_char *, u_int, const BIGNUM *);
 int	 kex_send_newkeys(struct ssh *);

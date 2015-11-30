@@ -1204,7 +1204,8 @@ ssh_packet_send2(struct ssh *ssh)
 		if ((type < SSH2_MSG_TRANSPORT_MIN) ||
 		    (type > SSH2_MSG_TRANSPORT_MAX) ||
 		    (type == SSH2_MSG_SERVICE_REQUEST) ||
-		    (type == SSH2_MSG_SERVICE_ACCEPT)) {
+		    (type == SSH2_MSG_SERVICE_ACCEPT) ||
+		    (type == SSH2_MSG_EXT_INFO)) {
 			debug("enqueue packet: %u", type);
 			p = calloc(1, sizeof(*p));
 			if (p == NULL)

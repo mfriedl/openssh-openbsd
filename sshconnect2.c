@@ -151,14 +151,16 @@ void
 ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *s;
 	struct kex *kex;
 	int r;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
 
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(
-	    options.kex_algorithms);
+	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
+		fatal("%s: kex_names_cat", __func__);
+	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(s);
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 	    compat_cipher_proposal(options.ciphers);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
@@ -213,6 +215,11 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 		debug("Roaming not allowed by server");
 		options.use_roaming = 0;
 	}
+	/* remove ext-info from the KEX proposals for rekeying */
+	myproposal[PROPOSAL_KEX_ALGS] =
+	    compat_kex_proposal(options.kex_algorithms);
+	if ((r = kex_prop2buf(kex->my, myproposal)) != 0)
+		fatal("kex_prop2buf: %s", ssh_err(r));
 
 	session_id2 = kex->session_id;
 	session_id2_len = kex->session_id_len;
@@ -363,6 +370,10 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	debug("SSH2_MSG_SERVICE_REQUEST sent");
 	packet_write_wait();
 	type = packet_read();
+	if (type == SSH2_MSG_EXT_INFO) {
+		kex_input_ext_info(type, 0, active_state);
+		type = packet_read();
+	}
 	if (type != SSH2_MSG_SERVICE_ACCEPT)
 		fatal("Server denied authentication request: %d", type);
 	if (packet_remaining() > 0) {
@@ -962,29 +973,48 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	return 0;
 }
 
+static const char *
+identity_sign_encode(struct identity *id)
+{
+	struct ssh *ssh = active_state;
+
+	if (id->key->type == KEY_RSA) {
+		switch (ssh->kex->rsa_sha2) {
+		case 256:
+			return "rsa-sha2-256";
+		case 512:
+			return "rsa-sha2-512";
+		}
+	}
+	return key_ssh_name(id->key);
+}
+
 static int
 identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat)
 {
 	Key *prv;
 	int ret;
+	const char *alg;
+
+	alg = identity_sign_encode(id);
 
 	/* the agent supports this key */
 	if (id->agent_fd != -1)
 		return ssh_agent_sign(id->agent_fd, id->key, sigp, lenp,
-		    data, datalen, NULL, compat);
+		    data, datalen, alg, compat);
 
 	/*
 	 * we have already loaded the private key or
 	 * the private key is stored in external hardware
 	 */
 	if (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))
-		return (sshkey_sign(id->key, sigp, lenp, data, datalen, NULL,
+		return (sshkey_sign(id->key, sigp, lenp, data, datalen, alg,
 		    compat));
 	/* load the private key from the file */
 	if ((prv = load_identity_file(id)) == NULL)
 		return (-1); /* XXX return decent error code */
-	ret = sshkey_sign(prv, sigp, lenp, data, datalen, NULL, compat);
+	ret = sshkey_sign(prv, sigp, lenp, data, datalen, alg, compat);
 	sshkey_free(prv);
 	return (ret);
 }
@@ -1031,7 +1061,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	} else {
 		buffer_put_cstring(&b, authctxt->method->name);
 		buffer_put_char(&b, have_sig);
-		buffer_put_cstring(&b, key_ssh_name(id->key));
+		buffer_put_cstring(&b, identity_sign_encode(id));
 	}
 	buffer_put_string(&b, blob, bloblen);
 
@@ -1131,7 +1161,7 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 	packet_put_cstring(authctxt->method->name);
 	packet_put_char(have_sig);
 	if (!(datafellows & SSH_BUG_PKAUTH))
-		packet_put_cstring(key_ssh_name(id->key));
+		packet_put_cstring(identity_sign_encode(id));
 	packet_put_string(blob, bloblen);
 	free(blob);
 	packet_send();
