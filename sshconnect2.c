@@ -972,7 +972,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	/* the agent supports this key */
 	if (id->agent_fd != -1)
 		return ssh_agent_sign(id->agent_fd, id->key, sigp, lenp,
-		    data, datalen, compat);
+		    data, datalen, NULL, compat);
 
 	/*
 	 * we have already loaded the private key or

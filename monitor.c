@@ -655,7 +655,7 @@ mm_answer_sign(int sock, Buffer *m)
 	} else if ((key = get_hostkey_public_by_index(keyid, ssh)) != NULL &&
 	    auth_sock > 0) {
 		if ((r = ssh_agent_sign(auth_sock, key, &signature, &siglen,
-		    p, datlen, datafellows)) != 0) {
+		    p, datlen, alg, datafellows)) != 0) {
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));
 		}

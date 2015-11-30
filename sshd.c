@@ -2355,9 +2355,8 @@ sshd_hostkey_sign(struct kex *kex, Key *privkey, Key *pubkey,
 		if (slen)
 			*slen = xxx_slen;
 	} else {
-		/* XXX pass kex->hostkey_alg */
 		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slen,
-		    data, dlen, datafellows)) != 0)
+		    data, dlen, kex->hostkey_alg, datafellows)) != 0)
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));
 	}
