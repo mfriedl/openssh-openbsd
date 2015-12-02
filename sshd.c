@@ -778,6 +778,12 @@ list_hostkey_types(void)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
 			buffer_append(&b, p, strlen(p));
+
+			/* for RSA we also support SHA2 signatures */
+			if (key->type == KEY_RSA) {
+				p = ",rsa-sha2-512,rsa-sha2-256";
+				buffer_append(&b, p, strlen(p));
+			}
 			break;
 		}
 		/* If the private key has a cert peer, then list that too */
