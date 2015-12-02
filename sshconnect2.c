@@ -283,6 +283,8 @@ struct cauthmethod {
 	int	*batch_flag;	/* flag in option struct that disables method */
 };
 
+int	input_userauth_service_accept(int, u_int32_t, void *);
+int	input_userauth_ext_info(int, u_int32_t, void *);
 int	input_userauth_success(int, u_int32_t, void *);
 int	input_userauth_success_unexpected(int, u_int32_t, void *);
 int	input_userauth_failure(int, u_int32_t, void *);
@@ -358,34 +360,12 @@ void
 ssh_userauth2(const char *local_user, const char *server_user, char *host,
     Sensitive *sensitive)
 {
+	struct ssh *ssh = active_state;
 	Authctxt authctxt;
-	int type;
+	int r;
 
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
-
-	packet_start(SSH2_MSG_SERVICE_REQUEST);
-	packet_put_cstring("ssh-userauth");
-	packet_send();
-	debug("SSH2_MSG_SERVICE_REQUEST sent");
-	packet_write_wait();
-	type = packet_read();
-	if (type == SSH2_MSG_EXT_INFO) {
-		kex_input_ext_info(type, 0, active_state);
-		type = packet_read();
-	}
-	if (type != SSH2_MSG_SERVICE_ACCEPT)
-		fatal("Server denied authentication request: %d", type);
-	if (packet_remaining() > 0) {
-		char *reply = packet_get_string(NULL);
-		debug2("service_accept: %s", reply);
-		free(reply);
-	} else {
-		debug2("buggy server: service_accept w/o service");
-	}
-	packet_check_eom();
-	debug("SSH2_MSG_SERVICE_ACCEPT received");
-
 	if (options.preferred_authentications == NULL)
 		options.preferred_authentications = authmethods_get();
 
@@ -407,19 +387,61 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	if (authctxt.method == NULL)
 		fatal("ssh_userauth2: internal error: cannot send userauth none request");
 
-	/* initial userauth request */
-	userauth_none(&authctxt);
+	if ((r = sshpkt_start(ssh, SSH2_MSG_SERVICE_REQUEST)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, "ssh-userauth")) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0)
+		fatal("%s: %s", __func__, ssh_err(r));
 
-	dispatch_init(&input_userauth_error);
-	dispatch_set(SSH2_MSG_USERAUTH_SUCCESS, &input_userauth_success);
-	dispatch_set(SSH2_MSG_USERAUTH_FAILURE, &input_userauth_failure);
-	dispatch_set(SSH2_MSG_USERAUTH_BANNER, &input_userauth_banner);
-	dispatch_run(DISPATCH_BLOCK, &authctxt.success, &authctxt);	/* loop until success */
+	ssh_dispatch_init(ssh, &input_userauth_error);
+	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &input_userauth_ext_info);
+	ssh_dispatch_set(ssh, SSH2_MSG_SERVICE_ACCEPT, &input_userauth_service_accept);
+	ssh_dispatch_run(ssh, DISPATCH_BLOCK, &authctxt.success, &authctxt);	/* loop until success */
 
 	pubkey_cleanup(&authctxt);
-	dispatch_range(SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
+	ssh_dispatch_range(ssh, SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
 
 	debug("Authentication succeeded (%s).", authctxt.method->name);
+}
+
+/* ARGSUSED */
+int
+input_userauth_service_accept(int type, u_int32_t seqnr, void *ctxt)
+{
+	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = active_state;
+	int r;
+
+	if (ssh_packet_remaining(ssh) > 0) {
+		char *reply;
+
+		if ((r = sshpkt_get_cstring(ssh, &reply, NULL)) != 0)
+			goto out;
+		debug2("service_accept: %s", reply);
+		free(reply);
+	} else {
+		debug2("buggy server: service_accept w/o service");
+	}
+	if ((r = sshpkt_get_end(ssh)) != 0)
+		goto out;
+	debug("SSH2_MSG_SERVICE_ACCEPT received");
+
+	/* initial userauth request */
+	userauth_none(authctxt);
+
+	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &input_userauth_error);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_SUCCESS, &input_userauth_success);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_FAILURE, &input_userauth_failure);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_BANNER, &input_userauth_banner);
+	r = 0;
+ out:
+	return r;
+}
+
+/* ARGSUSED */
+int
+input_userauth_ext_info(int type, u_int32_t seqnr, void *ctxt)
+{
+	return kex_input_ext_info(type, seqnr, active_state);
 }
 
 void
