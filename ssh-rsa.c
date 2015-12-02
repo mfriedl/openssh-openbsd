@@ -54,6 +54,8 @@ rsa_hash_alg_from_ident(const char *ident)
 		return SSH_DIGEST_SHA256;
 	if (strcmp(ident, "rsa-sha2-512") == 0)
 		return SSH_DIGEST_SHA512;
+	if (strncmp(ident, "ssh-rsa-cert", strlen("ssh-rsa-cert")) == 0)
+		return SSH_DIGEST_SHA1;
 	return -1;
 }
 
