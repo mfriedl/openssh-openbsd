@@ -1163,8 +1163,8 @@ server_input_hostkeys_prove(struct sshbuf **respp)
 		    (r = sshbuf_put_string(sigbuf,
 		    ssh->kex->session_id, ssh->kex->session_id_len)) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
-		    (r = ssh->kex->sign(ssh->kex, key_prv, key_pub, &sig, &slen,
-		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), 0)) != 0 ||
+		    (r = ssh->kex->sign(key_prv, key_pub, &sig, &slen,
+		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), NULL, 0)) != 0 ||
 		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
 			error("%s: couldn't prepare signature: %s",
 			    __func__, ssh_err(r));
