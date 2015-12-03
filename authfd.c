@@ -424,7 +424,7 @@ ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
 }
 #endif
 
-/* XXX encode signature algoritm in flag bits, so we can keep the msg format */
+/* encode signature algoritm in flag bits, so we can keep the msg format */
 static u_int
 agent_encode_alg(struct sshkey *key, const char *alg)
 {

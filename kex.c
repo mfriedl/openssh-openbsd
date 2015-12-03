@@ -356,7 +356,7 @@ kex_input_ext_info(int type, u_int32_t seq, void *ctxt)
 	char *name, *val, *found;
 	int r;
 
-	debug("SSH2_MSG_EXIT_INFO received");
+	debug("SSH2_MSG_EXT_INFO received");
 	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &kex_protocol_error);
 	if ((r = sshpkt_get_u32(ssh, &ninfo)) != 0)
 		return r;
